@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aplicación web full-stack con React y Node.js</title>
+<style>
+:root{
+  --navy:#0F2A4A; --navy2:#16385F; --blue:#2E75B6; --cyan:#22B8CF; --amber:#F4A261;
+  --bg:#F4F7FB; --card:#FFFFFF; --ink:#1B2733; --muted:#5B6B7B; --line:#D5DEE9;
+  --code:#0F1B2D; --codeink:#DCE7F5;
+  --font:"Segoe UI",Calibri,"Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,"Cascadia Mono","SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0B1626;font-family:var(--font);color:var(--ink);overflow:hidden}
+.stage{position:fixed;inset:0 0 44px 0;display:flex;align-items:center;justify-content:center}
+.deck{width:1280px;height:720px;position:relative;flex:none;transform-origin:center center}
+.slide{position:absolute;inset:0;background:var(--bg);padding:52px 72px 48px;display:none;overflow:hidden}
+.slide.active{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* header */
+.kicker{font-size:16.8px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700}
+h2{font-size:44.8px;color:var(--navy);margin:6px 0 0;line-height:1.15;font-weight:800}
+.bar{width:64px;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));margin:14px 0 26px}
+p.lead{font-size:25.8px;line-height:1.5;color:var(--ink)}
+.muted{color:var(--muted)}
+b,strong{color:var(--navy)}
+code,.mono{font-family:var(--mono)}
+code{background:#E6EEF8;color:#0F4C81;padding:1px 7px;border-radius:5px;font-size:.88em}
+
+/* footer */
+.foot{position:absolute;left:72px;right:72px;bottom:18px;display:flex;justify-content:space-between;font-size:14.6px;color:var(--muted)}
+
+/* layouts */
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:0 2px 6px rgba(15,42,74,.05)}
+.card h3{font-size:24.6px;color:var(--navy);margin-bottom:8px;line-height:1.25}
+.card p,.card li{font-size:20.7px;line-height:1.45}
+.card .ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:800;font-size:21.3px;margin-bottom:10px}
+ul.tight{list-style:none}
+ul.tight li{position:relative;padding-left:22px;margin:7px 0;font-size:23.5px;line-height:1.4}
+ul.tight li::before{content:"";position:absolute;left:2px;top:.62em;width:9px;height:9px;border-radius:50%;background:var(--cyan)}
+.card ul.tight li{font-size:20.7px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:22.4px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(15,42,74,.06)}
+th{background:var(--navy);color:#fff;text-align:left;padding:12px 16px;font-size:20.2px;letter-spacing:.02em}
+td{padding:12px 16px;border-top:1px solid var(--line);vertical-align:top;line-height:1.35}
+td:first-child{font-weight:700;color:var(--navy);white-space:nowrap}
+
+/* code */
+pre{background:var(--code);color:var(--codeink);font-family:var(--mono);font-size:18.5px;line-height:1.5;border-radius:12px;padding:16px 20px;overflow:hidden;white-space:pre}
+pre .c{color:#7F93AD}pre .k{color:#7DD3FC}pre .s{color:#A7F3D0}pre .f{color:#FCD34D}
+.codelabel{font-size:16.8px;font-weight:700;color:var(--blue);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase}
+
+/* callout */
+.callout{border-left:6px solid var(--amber);background:#FFF6EC;border-radius:0 12px 12px 0;padding:14px 20px;font-size:21.8px;line-height:1.45}
+.callout.blue{border-left-color:var(--blue);background:#EAF2FB}
+
+/* pills & arrows */
+.pill{display:inline-block;background:#E6EEF8;color:var(--navy);font-weight:700;border-radius:999px;padding:5px 14px;font-size:17.9px}
+.arrow{color:var(--blue);font-weight:800;font-size:29.1px;display:grid;place-items:center}
+
+/* cover */
+.cover{background:radial-gradient(1000px 600px at 85% 10%,#1F4E86 0%,transparent 60%),linear-gradient(160deg,var(--navy) 0%,#0A1B33 100%);color:#fff;padding:0}
+.cover .inner{position:absolute;inset:0;padding:60px 80px;display:flex;flex-direction:column}
+.cover .uni{font-size:16.8px;letter-spacing:.2em;text-transform:uppercase;color:#9CC4EA}
+.cover h1{font-size:56px;line-height:1.12;margin-top:30px;font-weight:800;max-width:980px}
+.cover h1 span{color:var(--cyan);white-space:nowrap}
+.cover .sub{font-size:25.8px;color:#C8DCF2;margin-top:14px}
+.cover .meta{margin-top:auto;display:grid;grid-template-columns:1fr 1.25fr;gap:40px;border-top:1px solid rgba(255,255,255,.2);padding-top:26px}
+.cover .meta h4{font-size:14.6px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.cover .meta p{font-size:22.4px;line-height:1.5;color:#fff}
+.cover .meta .asig{font-weight:700;font-size:22.4px;line-height:1.35}
+.cover .meta .doc{margin-top:18px}
+.cover .orb{position:absolute;right:70px;top:70px;width:150px;height:150px;opacity:.9}
+
+/* dark slide */
+.dark{background:linear-gradient(160deg,var(--navy),#0A1B33);color:#fff}
+.dark h2,.dark b{color:#fff}.dark .kicker{color:var(--cyan)}.dark .foot{color:#8FA9C6}
+
+/* step list */
+.steps{counter-reset:s;list-style:none}
+.steps li{counter-increment:s;position:relative;padding:10px 0 10px 58px;font-size:23px;line-height:1.4;border-bottom:1px dashed var(--line)}
+.steps li:last-child{border:none}
+.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;display:grid;place-items:center;font-size:20.2px}
+
+/* controls */
+.controls{position:fixed;left:0;right:0;bottom:0;height:44px;background:#08111F;display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#9FB4CE;font-size:15.7px;gap:12px}
+.controls button{background:#16273F;color:#E6EEF8;border:1px solid #27405F;border-radius:8px;padding:6px 14px;font:inherit;cursor:pointer}
+.controls button:hover{background:#1F3A5E}
+.controls .mid{flex:1;display:flex;align-items:center;gap:12px;justify-content:center}
+.progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0;transition:width .3s;z-index:5}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{overflow:visible;background:#fff;height:auto}
+  .stage{position:static;display:block}
+  .deck{transform:none!important;width:1280px;height:auto}
+  .slide{display:block!important;position:relative;width:1280px;height:720px;page-break-after:always;animation:none}
+  .controls,.progress{display:none}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="stage"><div class="deck" id="deck">
+
+<!-- 1. CARÁTULA -->
+<section class="slide cover" data-title="Carátula">
+  <svg class="orb" viewBox="0 0 150 150" fill="none" stroke="#22B8CF" stroke-width="3">
+    <ellipse cx="75" cy="75" rx="62" ry="24"/><ellipse cx="75" cy="75" rx="62" ry="24" transform="rotate(60 75 75)"/><ellipse cx="75" cy="75" rx="62" ry="24" transform="rotate(120 75 75)"/><circle cx="75" cy="75" r="8" fill="#22B8CF"/>
+  </svg>
+  <div class="inner">
+    <div class="uni">Universidad Andina del Cusco · Ingeniería de Sistemas</div>
+    <h1>Desarrollo de una aplicación web <span>full-stack</span> con React y Node.js</h1>
+    <div class="sub">Conceptos, implementación, arquitectura y buenas prácticas</div>
+    <div class="meta">
+      <div>
+        <h4>Asignatura</h4>
+        <p class="asig">PLATAFORMAS PARA EL DESARROLLO DE APLICACIONES</p>
+        <div class="doc"><h4>Docente</h4><p>Ramiro Mora Jimenez</p></div>
+      </div>
+      <div>
+        <h4>Estudiantes</h4>
+        <p>Gavancho Chafloque Carlos Eduardo<br>Rojas Taipe Sofia Katherine<br>Vargas Torres Danny Ruben</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. CONTENIDO -->
+<section class="slide" data-title="Contenido">
+  <div class="kicker">Contenido</div><h2>¿Qué veremos?</h2><div class="bar"></div>
+  <div class="grid g2" style="gap:22px">
+    <div class="card"><div class="ico">1</div><h3>Conceptos teóricos</h3>
+      <ul class="tight"><li>Modelo cliente-servidor</li><li>Arquitectura de componentes en React</li><li>Ciclo de vida de un componente</li><li>Asincronía y Event Loop de Node.js</li></ul></div>
+    <div class="card"><div class="ico">2</div><h3>Análisis arquitectónico</h3>
+      <ul class="tight"><li>Arquitectura en capas</li><li>API REST, peticiones HTTP y JSON</li><li>Flujo de integración y estructura del proyecto</li><li>Buenas prácticas y su justificación</li></ul></div>
+  </div>
+  <div class="callout blue" style="margin-top:26px"><b>Idea central:</b> un solo lenguaje (JavaScript) en toda la aplicación: React en el cliente, Node.js con Express en el servidor, y una API REST que los conecta mediante JSON sobre HTTP.</div>
+</section>
+
+<!-- 3. INTRODUCCIÓN -->
+<section class="slide" data-title="Introducción">
+  <div class="kicker">Introducción</div><h2>Aplicación web full-stack</h2><div class="bar"></div>
+  <div class="grid g2">
+    <div class="card"><div class="ico">⌘</div><h3>Front-end (React)</h3><p>Interfaz con la que interactúa el usuario. Se ejecuta en el navegador y gestiona la presentación y el estado de la vista.</p></div>
+    <div class="card"><div class="ico">⚙</div><h3>Back-end (Node.js + Express)</h3><p>Concentra la lógica de negocio y el acceso a los datos. Expone una API que el cliente consume.</p></div>
+  </div>
+  <ul class="tight" style="margin-top:26px">
+    <li>Ambas partes usan <b>JavaScript</b>: un único lenguaje en toda la aplicación.</li>
+    <li>Se desarrollan, despliegan y escalan <b>por separado</b>.</li>
+    <li>Se comunican mediante el protocolo <b>HTTP</b> con datos en <b>JSON</b>.</li>
+  </ul>
+</section>
+
+<!-- 4. CLIENTE-SERVIDOR -->
+<section class="slide" data-title="Modelo cliente-servidor">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>Modelo cliente-servidor</h2><div class="bar"></div>
+  <p class="lead" style="font-size:23.5px;margin-bottom:18px">Un <b>cliente</b> solicita un recurso o servicio y un <b>servidor</b> lo procesa y responde. En la web, el cliente es el navegador (React) y el servidor es el programa Node.js.</p>
+  <div style="display:flex;align-items:center;gap:14px;margin:6px 0 20px">
+    <div class="card" style="flex:1;text-align:center;padding:14px"><b>Cliente</b><br><span class="muted" style="font-size:19px">Navegador · React</span></div>
+    <div style="text-align:center;font-size:16.8px;color:var(--blue);font-weight:700;line-height:1.5">Petición HTTP →<br>← Respuesta (estado + JSON)</div>
+    <div class="card" style="flex:1;text-align:center;padding:14px"><b>Servidor</b><br><span class="muted" style="font-size:19px">Node.js · Express</span></div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3>Petición-respuesta</h3><p>El cliente siempre inicia. El servidor responde con código de estado, cabeceras y, normalmente, un cuerpo de datos.</p></div>
+    <div class="card"><h3>Sin estado (stateless)</h3><p>Cada petición es independiente. La identidad se envía en cada solicitud, por ejemplo con un token.</p></div>
+    <div class="card"><h3>Separación de responsabilidades</h3><p>El cliente presenta; el servidor aplica lógica y datos. Cada parte escala por separado.</p></div>
+  </div>
+</section>
+
+<!-- 5. COMPONENTES REACT -->
+<section class="slide" data-title="Arquitectura de componentes">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>Arquitectura de componentes en React</h2><div class="bar"></div>
+  <p class="lead" style="font-size:23.5px;margin-bottom:18px">React es <b>declarativo</b>: se describe cómo debe verse la interfaz para un estado dado y React actualiza el DOM. La interfaz es un <b>árbol de componentes</b> (funciones que reciben datos y devuelven JSX).</p>
+  <div class="grid g2">
+    <div class="card"><h3>Composición</h3><p>Los componentes complejos se arman combinando componentes pequeños, con una sola responsabilidad.</p></div>
+    <div class="card"><h3>Flujo de datos unidireccional</h3><p>Los datos bajan del padre al hijo mediante <b>props</b> (solo lectura). Los hijos avisan hacia arriba con funciones recibidas por props.</p></div>
+    <div class="card"><h3>Estado (state)</h3><p>Datos internos que cambian con el tiempo (<code>useState</code>). Al cambiar, el componente se vuelve a renderizar.</p></div>
+    <div class="card"><h3>DOM virtual y reconciliación</h3><p>React compara la nueva descripción con la anterior y aplica en el DOM real <b>solo las diferencias</b>.</p></div>
+  </div>
+</section>
+
+<!-- 6. CICLO DE VIDA -->
+<section class="slide" data-title="Ciclo de vida">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>Ciclo de vida de un componente</h2><div class="bar"></div>
+  <p class="lead" style="font-size:23.5px;margin-bottom:18px">Tres fases: <b>montaje</b> (se inserta en el DOM), <b>actualización</b> (cambian props o estado) y <b>desmontaje</b> (se elimina). En componentes funcionales se maneja con <code>useEffect</code>.</p>
+  <table>
+    <tr><th style="width:190px">Fase</th><th>Componentes de clase</th><th>Componentes funcionales</th></tr>
+    <tr><td>Montaje</td><td class="mono">componentDidMount</td><td class="mono">useEffect(() =&gt; {…}, [])</td></tr>
+    <tr><td>Actualización</td><td class="mono">componentDidUpdate</td><td class="mono">useEffect(() =&gt; {…}, [dependencia])</td></tr>
+    <tr><td>Desmontaje</td><td class="mono">componentWillUnmount</td><td>función de limpieza devuelta por <code>useEffect</code></td></tr>
+  </table>
+  <div class="callout blue" style="margin-top:22px">El efecto se ejecuta <b>después de pintar</b> el componente: es el lugar adecuado para pedir datos al servidor, suscribirse a eventos o iniciar temporizadores. La limpieza evita fugas de memoria. En desarrollo, <code>React.StrictMode</code> ejecuta los efectos dos veces a propósito para detectar errores de limpieza.</div>
+</section>
+
+<!-- 7. ASINCRONÍA -->
+<section class="slide" data-title="Asincronía">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>Asincronía en JavaScript y Node.js</h2><div class="bar"></div>
+  <p class="lead" style="font-size:23.5px;margin-bottom:20px">JavaScript ejecuta el código en <b>un único hilo</b>: una operación lenta síncrona (archivo, base de datos, API) bloquearía todo. La asincronía permite <b>iniciar la operación, seguir con otras tareas y retomar el resultado</b> cuando esté listo.</p>
+  <div class="grid g3">
+    <div class="card"><div class="ico">1</div><h3>Callbacks</h3><p>Funciones que se ejecutan cuando termina la operación. Anidarlos genera código difícil de leer.</p></div>
+    <div class="card"><div class="ico">2</div><h3>Promesas</h3><p><code>Promise</code> con <code>.then</code> y <code>.catch</code>: representan un resultado futuro y encadenan pasos.</p></div>
+    <div class="card"><div class="ico">3</div><h3>async / await</h3><p>Código asíncrono con apariencia secuencial; los errores se manejan con <code>try/catch</code>.</p></div>
+  </div>
+  <div class="callout" style="margin-top:24px"><b>Evolución:</b> callbacks → promesas → async/await. Hoy se usa async/await en toda la E/S del servidor.</div>
+</section>
+
+<!-- 8. EVENT LOOP -->
+<section class="slide" data-title="Event Loop">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>El Event Loop de Node.js</h2><div class="bar" style="margin-bottom:16px"></div>
+  <p class="lead" style="font-size:22.4px;margin-bottom:16px">Tu código JavaScript corre en un solo hilo, pero Node atiende muchas conexiones gracias a la <b>E/S no bloqueante</b> gestionada por el Event Loop (biblioteca <b>libuv</b>). La E/S se delega al sistema operativo o a un <b>pool de hilos</b> (4 por defecto: archivos, criptografía, DNS) y el callback se ejecuta al terminar.</p>
+  <div class="grid g3" style="gap:14px">
+    <div class="card" style="padding:14px 18px"><span class="pill">1 · Timers</span><p style="margin-top:8px;font-size:19.6px">Callbacks de <code>setTimeout</code> y <code>setInterval</code> cuyo tiempo venció.</p></div>
+    <div class="card" style="padding:14px 18px"><span class="pill">2 · Pending callbacks</span><p style="margin-top:8px;font-size:19.6px">Callbacks de E/S diferidos por el sistema.</p></div>
+    <div class="card" style="padding:14px 18px"><span class="pill">3 · Idle / prepare</span><p style="margin-top:8px;font-size:19.6px">Uso interno de Node.js.</p></div>
+    <div class="card" style="padding:14px 18px"><span class="pill">4 · Poll</span><p style="margin-top:8px;font-size:19.6px">Recibe eventos de E/S (red, archivos) y ejecuta sus callbacks.</p></div>
+    <div class="card" style="padding:14px 18px"><span class="pill">5 · Check</span><p style="margin-top:8px;font-size:19.6px">Callbacks programados con <code>setImmediate</code>.</p></div>
+    <div class="card" style="padding:14px 18px"><span class="pill">6 · Close callbacks</span><p style="margin-top:8px;font-size:19.6px">Eventos de cierre, p. ej. <code>socket.on('close')</code>.</p></div>
+  </div>
+  <div class="callout blue" style="margin-top:16px;font-size:20.2px"><b>↻ El bucle repite estas fases.</b> Entre una operación y otra se vacían dos colas de prioridad: primero <code>process.nextTick</code> y luego las <b>microtareas</b> (promesas y async/await).</div>
+</section>
+
+<!-- 9. ORDEN DE EJECUCIÓN -->
+<section class="slide" data-title="Orden de ejecución">
+  <div class="kicker">1 · Conceptos teóricos</div><h2>Event Loop: orden de ejecución</h2><div class="bar"></div>
+  <p class="lead" style="margin-bottom:18px">Entre una fase y otra, Node.js vacía las colas de prioridad en este orden:</p>
+  <table>
+    <tr><th style="width:110px">Orden</th><th>Qué se ejecuta</th></tr>
+    <tr><td>1</td><td>Código síncrono</td></tr>
+    <tr><td>2</td><td><code>process.nextTick</code></td></tr>
+    <tr><td>3</td><td>Microtareas (promesas y async/await)</td></tr>
+    <tr><td>4</td><td>Timers (<code>setTimeout</code>, <code>setInterval</code>) y el resto de fases del bucle</td></tr>
+  </table>
+  <div class="callout" style="margin-top:26px"><b>Consecuencia práctica:</b> como el hilo es único, un cálculo pesado o un bucle largo <b>bloquea el Event Loop</b> y deja sin respuesta a todos los clientes. Las tareas intensivas deben evitarse en el servidor, dividirse o delegarse a <b>worker threads</b> o a procesos aparte.</div>
+</section>
+
+<!-- 10. ARQUITECTURA EN CAPAS -->
+<section class="slide" data-title="Arquitectura general">
+  <div class="kicker">2 · Análisis arquitectónico</div><h2>Arquitectura general en tres capas</h2><div class="bar"></div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div class="card" style="display:grid;grid-template-columns:230px 1fr;align-items:center;gap:20px;padding:16px 24px"><div><span class="pill">Presentación</span><div style="margin-top:6px;font-weight:700;color:var(--navy)">React (navegador)</div></div><p>Mostrar la interfaz, capturar eventos del usuario y mantener el estado de la vista.</p></div>
+    <div class="arrow" style="font-size:17.9px;height:34px">▲ ▼ &nbsp;HTTP + JSON</div>
+    <div class="card" style="display:grid;grid-template-columns:230px 1fr;align-items:center;gap:20px;padding:16px 24px"><div><span class="pill">Lógica de negocio</span><div style="margin-top:6px;font-weight:700;color:var(--navy)">Node.js + Express</div></div><p>Exponer la API REST, validar datos, autenticar y aplicar las reglas del negocio.</p></div>
+    <div class="arrow" style="font-size:17.9px;height:34px">▲ ▼ &nbsp;Consultas</div>
+    <div class="card" style="display:grid;grid-template-columns:230px 1fr;align-items:center;gap:20px;padding:16px 24px"><div><span class="pill">Datos</span><div style="margin-top:6px;font-weight:700;color:var(--navy)">MongoDB o PostgreSQL</div></div><p>Almacenar y consultar la información de forma persistente.</p></div>
+  </div>
+</section>
+
+<!-- 11. API REST -->
+<section class="slide" data-title="API REST">
+  <div class="kicker">2 · Análisis arquitectónico</div><h2>API REST, peticiones HTTP y JSON</h2><div class="bar"></div>
+  <p class="lead" style="font-size:23px;margin-bottom:16px"><b>REST</b> (Representational State Transfer): el servidor expone <b>recursos identificados por URL</b> y el cliente los manipula con los verbos estándar de HTTP. Los datos viajan en <b>JSON</b>: ligero, legible y nativo de JavaScript.</p>
+  <table style="font-size:21.3px">
+    <tr><th style="width:170px">Verbo</th><th style="width:310px">Ejemplo de ruta</th><th>Acción</th></tr>
+    <tr><td>GET</td><td class="mono">/api/v1/tareas</td><td>Obtener la lista de tareas (200 OK)</td></tr>
+    <tr><td>POST</td><td class="mono">/api/v1/tareas</td><td>Crear una tarea nueva (201 Created)</td></tr>
+    <tr><td>PUT / PATCH</td><td class="mono">/api/v1/tareas/5</td><td>Reemplazar o modificar parcialmente la tarea 5</td></tr>
+    <tr><td>DELETE</td><td class="mono">/api/v1/tareas/5</td><td>Eliminar la tarea 5</td></tr>
+  </table>
+  <div class="callout blue" style="margin-top:18px;font-size:20.7px"><b>Códigos de estado:</b> 200 éxito · 201 creado · 400 datos inválidos · 401/403 sin autenticación o permiso · 404 no encontrado · 500 error interno del servidor.</div>
+</section>
+
+<!-- 12. FLUJO DE INTEGRACIÓN -->
+<section class="slide" data-title="Flujo de integración">
+  <div class="kicker">2 · Análisis arquitectónico</div><h2>Flujo de integración cliente ↔ servidor</h2><div class="bar" style="margin-bottom:14px"></div>
+  <ol class="steps">
+    <li>El usuario actúa en la interfaz y un componente de React dispara un <b>efecto</b> o un <b>manejador de eventos</b>.</li>
+    <li>El cliente envía una <b>petición HTTP</b> con <code>fetch</code> o Axios: método, URL, cabeceras y, si corresponde, cuerpo JSON.</li>
+    <li>Express recibe la petición y la pasa por los <b>middlewares</b> (CORS, lectura de JSON, autenticación, validación).</li>
+    <li>El <b>router</b> la dirige al <b>controlador</b>, que invoca la capa de <b>servicios</b> con la lógica de negocio.</li>
+    <li>La capa de datos consulta la base <b>de forma asíncrona</b>; mientras espera, el Event Loop atiende otras peticiones.</li>
+    <li>El servidor devuelve una <b>respuesta JSON</b> con su código de estado.</li>
+    <li>React actualiza el estado con <code>setState</code> y <b>vuelve a renderizar solo</b> los componentes afectados.</li>
+  </ol>
+</section>
+
+<!-- 14. ESTRUCTURA -->
+<section class="slide" data-title="Estructura del proyecto">
+  <div class="kicker">2 · Análisis arquitectónico</div><h2>Estructura de proyecto recomendada</h2><div class="bar"></div>
+  <div class="grid g2" style="gap:24px;align-items:start">
+<pre style="font-size:21.3px;line-height:1.45">proyecto/
+├── <span class="f">client/</span>            <span class="c">(React)</span>
+│   └── src/
+│       ├── components/
+│       ├── pages/
+│       ├── hooks/
+│       └── services/
+└── <span class="f">server/</span>            <span class="c">(Node.js)</span>
+    └── src/
+        ├── routes/
+        ├── controllers/
+        ├── services/
+        ├── models/
+        └── middlewares/</pre>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="padding:14px 20px"><h3 style="font-size:22.4px">Cliente</h3><p style="font-size:20.2px"><b>components</b> piezas de interfaz · <b>pages</b> vistas · <b>hooks</b> lógica reutilizable · <b>services</b> llamadas HTTP.</p></div>
+      <div class="card" style="padding:14px 20px"><h3 style="font-size:22.4px">Servidor</h3><p style="font-size:20.2px"><b>routes</b> URL y verbos · <b>controllers</b> req/res · <b>services</b> lógica de negocio · <b>models</b> datos · <b>middlewares</b> validación, auth y errores.</p></div>
+      <div class="callout blue" style="font-size:20.2px">Cada carpeta tiene una <b>única responsabilidad</b>: facilita las pruebas y el trabajo en equipo.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. BUENAS PRÁCTICAS 1 -->
+<section class="slide" data-title="Buenas prácticas (1/2)">
+  <div class="kicker">3 · Buenas prácticas</div><h2>Buenas prácticas y su justificación <span class="muted" style="font-size:27px;font-weight:600">(1/2)</span></h2><div class="bar"></div>
+  <div class="grid g2" style="gap:18px">
+    <div class="card"><h3>Arquitectura en capas en el servidor</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">Rutas, controladores, servicios, modelos</p><p>Separa responsabilidades, facilita las pruebas y permite cambiar la base de datos o el framework sin reescribir la lógica.</p></div>
+    <div class="card"><h3>Componentes pequeños, hooks y capa de servicios</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">En el cliente</p><p>Fomenta la reutilización y evita mezclar llamadas HTTP con la presentación; el código es más fácil de mantener.</p></div>
+    <div class="card"><h3>API REST correcta y versionada</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">Verbos y códigos HTTP, <code>/api/v1</code></p><p>Hace la API predecible para quien la consume y permite evolucionar sin romper clientes existentes.</p></div>
+    <div class="card"><h3>Variables de entorno</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">Archivo <code>.env</code></p><p>Evita exponer credenciales en el código y permite distintas configuraciones por entorno.</p></div>
+  </div>
+</section>
+
+<!-- 16. BUENAS PRÁCTICAS 2 -->
+<section class="slide" data-title="Buenas prácticas (2/2)">
+  <div class="kicker">3 · Buenas prácticas</div><h2>Buenas prácticas y su justificación <span class="muted" style="font-size:27px;font-weight:600">(2/2)</span></h2><div class="bar"></div>
+  <div class="grid g2" style="gap:18px">
+    <div class="card"><h3>Validación y manejo centralizado de errores</h3><p>Nunca se debe confiar en los datos del cliente; un único middleware de errores garantiza respuestas coherentes.</p></div>
+    <div class="card"><h3>Seguridad</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">CORS restringido, helmet, límite de peticiones, bcrypt, JWT</p><p>Reduce los riesgos comunes: accesos no autorizados, fuerza bruta y filtración de contraseñas.</p></div>
+    <div class="card"><h3>No bloquear el Event Loop</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">async/await en toda la E/S</p><p>Con un solo hilo, una operación síncrona pesada paraliza a todos los usuarios.</p></div>
+    <div class="card"><h3>Git, pruebas y logs</h3><p class="muted" style="font-size:17.9px;margin-bottom:6px">Control de versiones, pruebas automatizadas, registro de eventos</p><p>Permiten trabajar en equipo, detectar errores a tiempo y diagnosticar fallos en producción.</p></div>
+  </div>
+</section>
+
+<!-- 17. CONCLUSIONES -->
+<section class="slide dark" data-title="Conclusiones">
+  <div class="kicker">Conclusiones</div><h2>Ideas clave</h2><div class="bar"></div>
+  <ul class="tight" style="margin-top:4px">
+    <li style="color:#E6EEF8">Una app full-stack se apoya en el <b>modelo cliente-servidor</b>: React gestiona la interfaz con componentes, estado y efectos; Node.js atiende peticiones con su <b>Event Loop no bloqueante</b>.</li>
+    <li style="color:#E6EEF8">Ambas partes se integran mediante una <b>API REST</b> que intercambia <b>JSON sobre HTTP</b>.</li>
+    <li style="color:#E6EEF8">Las prácticas que más inciden en un sistema mantenible, seguro y escalable: <b>arquitectura en capas</b>, <b>validar y proteger la API</b> y <b>no bloquear el Event Loop</b>.</li>
+  </ul>
+  <div style="position:absolute;left:72px;right:72px;bottom:90px;font-size:49.3px;font-weight:800;color:#fff">¡Gracias!</div>
+</section>
+
+</div></div>
+
+<div class="controls">
+  <button id="prev" title="Anterior (←)">← Anterior</button>
+  <div class="mid"><span id="ttl"></span><span>·</span><span id="num"></span></div>
+  <div><button id="fs" title="Pantalla completa (F)">Pantalla completa</button> <button id="next" title="Siguiente (→)">Siguiente →</button></div>
+</div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var deck=document.getElementById('deck'), i=0;
+  var DW=1280, DH=720;
+  // pie de página en cada diapositiva (excepto la carátula)
+  slides.forEach(function(s,n){
+    if(n===0) return;
+    var f=document.createElement('div'); f.className='foot';
+    f.innerHTML='<span>Plataformas para el Desarrollo de Aplicaciones · React y Node.js</span><span>'+(n+1)+' / '+slides.length+'</span>';
+    s.appendChild(f);
+  });
+  function fit(){
+    var s=Math.min(window.innerWidth/DW,(window.innerHeight-44)/DH);
+    deck.style.transform='scale('+s+')';
+  }
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach(function(s,k){s.classList.toggle('active',k===i)});
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('ttl').textContent=slides[i].getAttribute('data-title')||'';
+    document.getElementById('progress').style.width=((i+1)/slides.length*100)+'%';
+    try{history.replaceState(null,'','#'+(i+1))}catch(e){}
+  }
+  document.getElementById('prev').onclick=function(){show(i-1)};
+  document.getElementById('next').onclick=function(){show(i+1)};
+  document.getElementById('fs').onclick=function(){
+    if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
+    else{document.exitFullscreen&&document.exitFullscreen()}
+  };
+  document.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){e.preventDefault();show(i+1)}
+    else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault();show(i-1)}
+    else if(k==='Home'){show(0)} else if(k==='End'){show(slides.length-1)}
+    else if(k==='f'||k==='F'){document.getElementById('fs').click()}
+  });
+  var x0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return; var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){show(i+(dx<0?1:-1))} x0=null;
+  });
+  window.addEventListener('resize',fit);
+  fit();
+  var h=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(h)?0:h-1);
+})();
+</script>
+</body>
+</html>
